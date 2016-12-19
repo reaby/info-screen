@@ -4,7 +4,7 @@ var io = require('socket.io')(server);
 const fs = require('fs');
 
 var directory = "set1";
-var filecounter = 0;
+var filecounter = -1;
 var imageFile = "";
 
 server.listen(80);
@@ -121,10 +121,11 @@ function changeSlide() {
         var len = filteredFiles.length;
         if (filecounter > len) filecounter = 0;
 
+        filecounter = (filecounter + 1) % len;
         io.emit('updateImage', {
             imageUrl: '/images/' + directory + '/' + filteredFiles[filecounter]
         });
-        filecounter = (filecounter + 1) % len;
+
 
     });
 }
