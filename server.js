@@ -2,6 +2,7 @@ var app = require('express')();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 const fs = require('fs');
+const path = require('path');
 
 /** @var string */
 var directory = "set1";
@@ -21,6 +22,8 @@ var loopTimeout = 20000;
 var loopStop = false;
 
 var timeoutId = [];
+
+var len = 1;
 
 server.listen(80);
 
@@ -54,7 +57,6 @@ app.get('/images/:dir/:name', function (req, res, next) {
             console.log('Sent:', fileName);
         }
     });
-
 });
 
 app.get('/js/:name', function (req, res, next) {
@@ -99,13 +101,24 @@ io.on('connection', function (socket) {
         sendOverride(data);
     });
 
+    socket.on("edit", function (data) {
+        sendEditSlide(socket, data);
+    });
+
+    socket.on("saveSlide", function (data) {
+        saveSlide(data);
+    });
+
+    socket.on("list", function (data) {
+        sendFilelist(socket, data);
+    });
 
     socket.on("next", function () {
         doLoop(true);
     });
 
     socket.on("prev", function () {
-        fileCounter--;
+        fileCounter -= 2;
         doLoop(true);
     });
 
@@ -128,10 +141,9 @@ function syncImage(socket) {
 }
 
 function sendOverride(data) {
-
-    buffer.method = 'displayText';
+    buffer.method = 'overrideText';
     buffer.data = {
-        imageUrl: '/images/overrides/background.jpg',
+        imageUrl: '/images/default/background.jpg',
         title: data.title,
         text: data.text
     };
@@ -139,15 +151,74 @@ function sendOverride(data) {
 }
 
 
+function saveSlide(data) {
+    var out = {
+        title: data.title,
+        text: data.text
+    };
+
+    fs.writeFile("public/images/" + data.dir + "/" + data.file, JSON.stringify(out), function (err) {
+        if (err) {
+            console.log("fail");
+            return;
+        }
+        console.log("success!");
+    });
+}
+
+function sendEditSlide(socket, inData) {
+    try {
+        var data = JSON.parse(fs.readFileSync(__dirname + "/public/images/" + inData.dir + "/" + inData.file, 'utf8'));
+        data.dir = inData.dir;
+        data.file = inData.file;
+        socket.emit("getEditData", data);
+    } catch (e) {
+        console.log("error while parsing editData json");
+    }
+}
+
+
 function doLoop(value) {
     loopStop = !value;
-    for (var i in timeoutId) {
-        clearTimeout(timeoutId.shift());
-    }
-
     if (value) {
         mainLoop();
     }
+}
+
+function listFiles(dir) {
+    return fs.readdirSync(dir).reduce(function (list, file) {
+        var name = path.join(dir, file);
+        var isDir = fs.statSync(name).isDirectory();
+        return list.concat(isDir ? [] : [file]);
+    }, []);
+}
+
+function listDirs(dir) {
+    return fs.readdirSync(dir).reduce(function (list, file) {
+        var name = path.join(dir, file);
+        var isDir = fs.statSync(name).isDirectory();
+        return list.concat(isDir ? [file] : []);
+    }, []);
+}
+
+function sendFilelist(socket, dir) {
+    var list = listDirs("public/images");
+    if (dir.indexOf(".") !== -1) {
+        return;
+    }
+    var files = listFiles("public/images/" + dir);
+    var list2 = [];
+    for (var i in files) {
+        var file = files[i];
+        if (file.slice(-3) == "jpg" || file.slice(-3) == "png") {
+            list2.push(file);
+        }
+        if (file.slice(-4) == "json") {
+            list2.push(file);
+        }
+    }
+    var data = {dir: dir, dirs: list, files: list2};
+    socket.emit("doFileList", data);
 }
 
 /**
@@ -158,6 +229,11 @@ function mainLoop() {
         // do nothing
     }
     else {
+        for (var i in timeoutId) {
+            var id = timeoutId.shift();
+            clearTimeout(id);
+        }
+
         timeoutId.push(setTimeout(mainLoop, loopTimeout));
 
         fs.readdir(__dirname + "/public/images/" + directory, function (err, files) {
@@ -167,18 +243,32 @@ function mainLoop() {
                 if (file.slice(0, 1) == ".") continue;
                 filteredFiles.push(file);
             }
-            var len = filteredFiles.length;
 
-            if (fileCounter > len) fileCounter = 0;
-            fileCounter = (fileCounter + 1) % len;
-            if (fileCounter < 0) fileCounter = 0;
+            len = filteredFiles.length;
 
+            fileCounter += 1;
+            if (fileCounter < 0) fileCounter = Math.abs(len + fileCounter);
+            fileCounter = fileCounter % len;
 
-            buffer.data = {imageUrl: '/images/' + directory + '/' + filteredFiles[fileCounter]};
-            buffer.method = 'updateImage';
+            var file = filteredFiles[fileCounter];
 
+            if (file.slice(-3) == "jpg" || file.slice(-3) == "png") {
+                buffer.method = 'updateImage';
+                buffer.data = {imageUrl: '/images/' + directory + '/' + file};
+            } else if (file.slice(-4) == "json") {
+                try {
+                    var data = JSON.parse(fs.readFileSync(__dirname + "/public/images/" + directory + "/" + file, 'utf8'));
+                    buffer.method = 'displayText';
+                    buffer.data = {
+                        imageUrl: '/images/default/background.jpg',
+                        title: data.title,
+                        text: data.text
+                    };
+                } catch (e) {
+                    console.log("error while  parsing slide data");
+                }
+            }
             io.emit(buffer.method, buffer.data);
-
         });
     }
 }

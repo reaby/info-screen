@@ -1,24 +1,10 @@
 var canvas = new fabric.StaticCanvas('c');
 var images = [];
 var override = [];
-var isOverride = false;
+var textGroup = null;
 var flashBox = null;
-
-function clearCanvas() {
-    socket.emit("clear");
-}
-
-function loopStop() {
-    socket.emit("stop");
-}
-
-function loopNext() {
-    socket.emit("next");
-}
-
-function loopPrev() {
-    socket.emit("prev");
-}
+var sizeTitle = 72;
+var sizeText = 50;
 
 socket.on('connect', function () {
     socket.emit("sync");
@@ -53,16 +39,134 @@ socket.on('clearCanvas', function (data) {
         canvas.clear();
     }
 });
-
 socket.on('displayText', function (data) {
+    if (override.length > 0) {
+        for (var i in override) {
+            override[i].animate("opacity", 0, {
+                duration: 1500,
+                onChange: canvas.renderAll.bind(canvas),
+                onComplete: function () {
+                    canvas.clear();
+                    override = [];
+                    displayText2(data);
+                }
+            });
+        }
+    } else {
+        displayText2(data);
+    }
+});
+
+
+function displayText2(data) {
+
+    fabric.Image.fromURL(data.imageUrl, function (oImg) {
+        oImg.set({
+            scaleY: canvas.height / oImg.height,
+            scaleX: canvas.width / oImg.width,
+            opacity: 1
+        });
+        images.push(oImg);
+
+        if (images.length > 1) {
+            var imageLast = images.shift();
+            canvas.add(images[0]);
+            images[0].animate("opacity", 1, {
+                from: 0,
+                onChange: canvas.renderAll.bind(canvas),
+                duration: 2500,
+                onComplete: function () {
+                    canvas.remove(imageLast);
+                }
+            });
+            displayText3(data);
+
+        } else {
+            images[0].set({
+                opacity: 1
+            });
+            canvas.add(images[0]);
+            displayText3(data);
+        }
+    });
+}
+/**
+ * clears old texts from screen
+ * @param data
+ */
+function displayText3(data) {
+
+    clearTexts();
+    displayText4(data);
+}
+
+function clearTexts() {
+    var oldGroup = textGroup;
+    if (textGroup) {
+        oldGroup.animate("opacity", 0, {
+            duration: 2500,
+            onChange: canvas.renderAll.bind(canvas),
+            onComplete: function () {
+                canvas.remove(oldGroup);
+            }
+        });
+
+        delete oldGroup;
+    }
+}
+
+/**
+ * finally display the text
+ */
+function displayText4(data) {
+
+    var title = new fabric.Text(data.title, {
+        left: 150, //Take the block's position
+        top: 75,
+        fill: 'white',
+        fontFamily: "Arial",
+        fontSize: sizeTitle
+    });
+
+    var text = new fabric.Textbox(data.text, {
+        left: 250, //Take the block's position
+        top: 200,
+        width: 1600,
+        height: 1000,
+        fill: 'white',
+        fontFamily: "Arial",
+        fontSize: sizeText
+    });
+
+    title.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
+    text.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
+
+    textGroup = new fabric.Group([title, text]);
+    textGroup.set({opacity: 0});
+
+    canvas.add(textGroup);
+
+    textGroup.animate("opacity", 1, {
+        duration: 2500,
+        onChange: canvas.renderAll.bind(canvas)
+    });
+
+}
+
+
+socket.on('overrideText', function (data) {
     for (var i in images) {
         canvas.remove(images.shift());
     }
     for (var o in override) {
         canvas.remove(override.shift());
     }
+    for (var i in texts) {
+        canvas.remove(texts.shift());
+    }
     override = [];
     images = [];
+    texts = [];
 
     canvas.clear();
 
@@ -73,13 +177,12 @@ socket.on('displayText', function (data) {
             opacity: 1
         });
 
-
         var title = new fabric.Text(data.title, {
             left: 200, //Take the block's position
             top: 100,
             fill: 'white',
             fontFamily: "Arial",
-            fontSize: 120
+            fontSize: sizeTitle
         });
 
         var text = new fabric.Textbox(data.text, {
@@ -89,7 +192,7 @@ socket.on('displayText', function (data) {
             height: 1000,
             fill: 'white',
             fontFamily: "Arial",
-            fontSize: 90
+            fontSize: sizeText
         });
 
         title.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
@@ -103,13 +206,17 @@ socket.on('displayText', function (data) {
             canvas.add(override[i]);
         }
 
+        if (data.flash) {
+            flash();
+        }
         flash();
+
     });
 
 });
 
 socket.on('updateImage', function (data) {
-
+    clearTexts();
     fabric.Image.fromURL(data.imageUrl, function (oImg) {
             oImg.set({
                 scaleY: canvas.height / oImg.height,
@@ -127,7 +234,6 @@ socket.on('updateImage', function (data) {
                     duration: 2500,
                     onComplete: function () {
                         canvas.remove(imageLast);
-
                     }
                 });
                 //     change();
@@ -161,8 +267,8 @@ function flash(color, cont) {
         {
             top: 0,
             left: 0,
-            width: 1920,
-            height: 1080,
+            width: 1280,
+            height: 720,
             fill: color,
             opacity: 0
         });
@@ -187,6 +293,5 @@ function flash(color, cont) {
             });
         }
     });
-
-
 }
+

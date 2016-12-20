@@ -12,8 +12,14 @@
             margin: 0;
             padding: 0;
         }
+
+        .sortable {
+            list-style: none;
+        }
     </style>
     <link rel="stylesheet" href="js/bootstrap.css">
+    <link rel="stylesheet" href="js/jquery-ui.css">
+    <link rel="stylesheet" href="js/jquery-ui.theme.css">
 
 
 </head>
@@ -21,38 +27,119 @@
 <div class="container">
     <div class="row">
         <div class="col-xs-6">
-            <canvas id="c" width="1920" height="1080"></canvas>
+            <canvas id="c" width="1280" height="720"></canvas>
+            <br>
+            <button class="btn btn-sm btn-danger" onclick="socket.emit('clear');">Clear</button>
+            <button class="btn btn-sm btn-warning" onclick="socket.emit('stop');">Stop</button>
+            <button class="btn btn-sm btn-success" onclick="socket.emit('prev');">Prev</button>
+            <button class="btn btn-sm btn-success" onclick="socket.emit('next');">Next</button>
+            <br/><br/>
+            <div id="files">
+                <ul class="sortable" id="aFile">
+                </ul>
+            </div>
+
         </div>
         <div class="col-xs-6">
-            <button class="btn btn-danger" onclick="clearCanvas();">Clear</button>
-            <button class="btn btn-warning" onclick="loopStop();">Stop</button>
-            <button class="btn btn-success" onclick="loopPrev();">Prev</button>
-            <button class="btn btn-success" onclick="loopNext();">Next</button>
-            <br/><br/>
+
             <input class="form-control" type="text" id="title" placeholder="Otsikko"/>
             <textarea class="form-control" id="text" placeholder="teksti tähän"></textarea>
             <button class="btn btn-info" onclick="showText();">Override</button>
             <button class="btn btn-danger" onclick="reset();">Reset</button>
+            <br/><br/>
+            <div id="dirs">
+                <select id="aDir">
+                </select>
+            </div>
+            <br>
+
+
         </div>
     </div>
 </div>
 
-<script>
-    var socket = io.connect('http://localhost');
-</script>
+<div id="dialog">
+    <p>
+        <input type="hidden" id="editDir"/>
+        <input type="hidden" id="editFile"/>
+        <input class="form-control" type="text" id="editTitle"/>
+        <textarea class="form-control" id="editText"></textarea>
+    </p>
+</div>
+<script src="/js/config.js"></script>
 <script src="/js/jquery.js"></script>
+<script src="js/jquery-ui.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/js/tether.min.js"
         integrity="sha384-XTs3FgkjiBgo8qjEjBk0tGmf3wPrWtA6coPfQDfFEY8AnYJwjalXCiosYRBIBZX8"
         crossorigin="anonymous"></script>
 <script src="/js/bootstrap.js"></script>
+
 <script src="/js/fabric.require.js"></script>
 <script src="/js/app.js"></script>
 <script>
     $(function () {
         $("#c").css("width", "210px");
         $("#c").css("height", "120px");
+        socket.emit("list", "set1");
+
+        $(".sortable").sortable();
+        $(".sortable").disableSelection();
+
+        $("#dialog").dialog({
+            autoOpen: false,
+            resizable: false,
+            height: "auto",
+            width: 400,
+            modal: true,
+            buttons: {
+                "Save": function () {
+                    socket.emit("saveSlide", {
+                        file: $("#editFile").val(),
+                        dir: $("#editDir").val(),
+                        title: $("#editTitle").val(),
+                        text: $("#editText").val(),
+                    });
+                    $(this).dialog("close");
+                },
+                "Cancel": function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
     });
 
+
+    socket.on("doFileList", function (data) {
+        var dir = "";
+        var file = "";
+        for (var i in data.dirs) {
+            dir += "<option>" + data.dirs[i] + "</option>";
+        }
+        for (var i in data.files) {
+            var fil = data.files[i];
+            var edit = "";
+            if (fil.slice(-4) == "json") {
+                edit = "<button class='btn btn-info btn-sm' onclick=\"socket.emit('edit', {dir: '" + data.dir + "', file: '" + fil + "'});\">Edit</button >";
+            }
+            file += '<li class="ui-state-default">' + data.files[i] + edit + "</li>";
+        }
+
+        $("#aDir").html(dir);
+        $("#aFile").html(file);
+
+    });
+
+
+    socket.on("getEditData", function (data) {
+        $("#editFile").val(data.file);
+        $("#editDir").val(data.dir);
+        $("#editTitle").val(data.title);
+        $("#editText").val(data.text);
+        $("#dialog").dialog("open");
+    });
+
+
 </script>
+
 </body>
 </html>
