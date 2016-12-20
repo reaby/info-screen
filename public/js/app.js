@@ -24,6 +24,11 @@ socket.on('connect', function () {
     socket.emit("sync");
 });
 
+function reset() {
+    $('#title').val("");
+    $('#text').val("");
+}
+
 function showText() {
     socket.emit("override", {
             title: $('#title').val(),
@@ -80,6 +85,8 @@ socket.on('displayText', function (data) {
         var text = new fabric.Textbox(data.text, {
             left: 250, //Take the block's position
             top: 250,
+            width: 1600,
+            height: 1000,
             fill: 'white',
             fontFamily: "Arial",
             fontSize: 90

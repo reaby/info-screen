@@ -9,8 +9,10 @@ var directory = "set1";
 /** @var integer */
 var fileCounter = -1;
 
-/** @var string */
+/** @var object */
 var imageFile = "";
+
+var buffer = {};
 
 /** @var int timeout in milliseconds */
 var loopTimeout = 20000;
@@ -122,27 +124,18 @@ mainLoop();
  * @param socket
  */
 function syncImage(socket) {
-    fs.readdir(__dirname + "/public/images/" + directory, function (err, files) {
-        if (err) {
-            console.log(err);
-            return;
-        }
-
-        socket.emit('updateImage', {
-                imageUrl: imageFile
-            }
-        );
-    });
+    socket.emit(buffer.method, buffer.data);
 }
 
 function sendOverride(data) {
-    console.log(data);
 
-    io.emit('displayText', {
+    buffer.method = 'displayText';
+    buffer.data = {
         imageUrl: '/images/overrides/background.jpg',
         title: data.title,
         text: data.text
-    });
+    };
+    io.emit(buffer.method, buffer.data);
 }
 
 
@@ -181,11 +174,10 @@ function mainLoop() {
             if (fileCounter < 0) fileCounter = 0;
 
 
-            imageFile = '/images/' + directory + '/' + filteredFiles[fileCounter];
+            buffer.data = {imageUrl: '/images/' + directory + '/' + filteredFiles[fileCounter]};
+            buffer.method = 'updateImage';
 
-            io.emit('updateImage', {
-                imageUrl: imageFile
-            });
+            io.emit(buffer.method, buffer.data);
 
         });
     }
