@@ -1,8 +1,8 @@
-var socket = io.connect('http://localhost');
 var canvas = new fabric.StaticCanvas('c');
 var images = [];
 var override = [];
 var isOverride = false;
+var flashBox = null;
 
 function clearCanvas() {
     socket.emit("clear");
@@ -102,7 +102,8 @@ socket.on('displayText', function (data) {
         for (var i in override) {
             canvas.add(override[i]);
         }
-        canvas.renderAll();
+
+        flash();
     });
 
 });
@@ -129,7 +130,7 @@ socket.on('updateImage', function (data) {
 
                     }
                 });
-           //     change();
+                //     change();
             }
             else {
                 canvas.clear();
@@ -150,3 +151,42 @@ function change() {
     });
 }
 
+function flash(color, cont) {
+
+    if (!cont) {
+        color = "rgb(255,255,255)";
+    }
+
+    flashBox = new fabric.Rect(
+        {
+            top: 0,
+            left: 0,
+            width: 1920,
+            height: 1080,
+            fill: color,
+            opacity: 0
+        });
+
+    canvas.add(flashBox);
+
+    flashBox.animate("opacity", 1, {
+        duration: 150,
+        onChange: canvas.renderAll.bind(canvas),
+        onComplete: function () {
+            flashBox.animate("opacity", 0, {
+                duration: 150,
+                onChange: canvas.renderAll.bind(canvas),
+                onComplete: function () {
+                    canvas.remove(flashBox);
+                    if (cont) {
+                        return;
+                    } else {
+                        flash("rgb(255,255,255)", true)
+                    }
+                }
+            });
+        }
+    });
+
+
+}
