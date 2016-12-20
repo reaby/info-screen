@@ -2,20 +2,38 @@ var socket = io.connect('http://localhost');
 var canvas = new fabric.StaticCanvas('c');
 var images = [];
 
-function cleare() {
+function clearCanvas() {
     socket.emit("clear");
 }
 
-function test() {
-    socket.emit("test", "/set1/tonttu2.jpg");
+function loopStop() {
+    socket.emit("stop");
+}
+
+function loopContinue() {
+    socket.emit("continue");
 }
 
 socket.on('connect', function () {
     socket.emit("sync");
 });
 
+
 socket.on('clearCanvas', function (data) {
-    canvas.clear();
+    if (images.length > 0) {
+        for (var i in images) {
+            images[i].animate("opacity", 0, {
+                duration: 1500,
+                onChange: canvas.renderAll.bind(canvas),
+                onComplete: function () {
+                    canvas.clear();
+                    images = [];
+                }
+            });
+        }
+    } else {
+        canvas.clear();
+    }
 });
 
 socket.on('updateImage', function (data) {
@@ -38,7 +56,7 @@ socket.on('updateImage', function (data) {
                         canvas.remove(imageLast);
                     }
                 });
-            change();
+                change();
             }
             else {
                 images[0].set({

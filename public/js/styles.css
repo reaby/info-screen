@@ -1,0 +1,22 @@
+html, * {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    overflow: hidden;
+    background: black;
+}
+
+#kello {
+    position: fixed;
+    z-index: 10;
+    bottom: 1em;
+    right: 1em;
+    font-family: "Arial";
+    font-weight: bolder;
+    font-size: 3em;
+    color: white;
+    text-shadow: 2px 2px 2px black;
+    text-align: right;
+}

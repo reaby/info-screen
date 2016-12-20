@@ -3,9 +3,20 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 const fs = require('fs');
 
+/** @var string */
 var directory = "set1";
+
+/** @var integer */
 var filecounter = -1;
+
+/** @var string */
 var imageFile = "";
+
+/** @var int timeout in milliseconds */
+var loopTimeout = 20000;
+
+/** @var boolean stop the loop ? */
+var loopStop = false;
 
 server.listen(80);
 
@@ -70,62 +81,72 @@ app.get('/js/:name', function (req, res, next) {
 
 io.on('connection', function (socket) {
 
-
+    // when client connects, it calls for sync!
     socket.on("sync", function () {
-        updateImage(socket);
+        syncImage(socket);
+    });
+
+    socket.on("stop", function () {
+        loopStop = true;
+    });
+
+    socket.on("continue", function () {
+        loopStop = false;
+        loop();
     });
 
     socket.on("clear", function (data) {
-        console.log("clearing");
         io.emit('clearCanvas');
+        loopStop = true;
     });
 
-    socket.on("test", function (data) {
-        console.log("updateImage");
-
-    });
-
-    socket.on('clearCanvas', function (data) {
-        console.log(data);
-    });
 });
 
-setInterval(changeSlide, 20000);
+// Start the loop
+loop();
 
-changeSlide();
-
-
-function updateImage(socket) {
+/**
+ * syncs the image for incoming connection
+ * @param socket
+ */
+function syncImage(socket) {
     fs.readdir(__dirname + "/public/images/" + directory, function (err, files) {
-        var filteredFiles = [];
-        for (var i in files) {
-            var file = files[i];
-            if (file.slice(0, 1) == ".") continue;
-            filteredFiles.push(file);
+        if (err) {
+            console.log(err);
+            return;
         }
+
         socket.emit('updateImage', {
-                imageUrl: '/images/' + directory + '/' + filteredFiles[filecounter]
+                imageUrl: imageFile
             }
         );
     });
 }
 
-function changeSlide() {
-    fs.readdir(__dirname + "/public/images/" + directory, function (err, files) {
-        var filteredFiles = [];
-        for (var i in files) {
-            var file = files[i];
-            if (file.slice(0, 1) == ".") continue;
-            filteredFiles.push(file);
-        }
-        var len = filteredFiles.length;
-        if (filecounter > len) filecounter = 0;
 
-        filecounter = (filecounter + 1) % len;
-        io.emit('updateImage', {
-            imageUrl: '/images/' + directory + '/' + filteredFiles[filecounter]
+/**
+ * main loop
+ */
+function loop() {
+    if (!loopStop) {
+        setTimeout(loop, loopTimeout);
+        fs.readdir(__dirname + "/public/images/" + directory, function (err, files) {
+            var filteredFiles = [];
+            for (var i in files) {
+                var file = files[i];
+                if (file.slice(0, 1) == ".") continue;
+                filteredFiles.push(file);
+            }
+            var len = filteredFiles.length;
+            if (filecounter > len) filecounter = 0;
+
+            filecounter = (filecounter + 1) % len;
+            imageFile = '/images/' + directory + '/' + filteredFiles[filecounter];
+
+            io.emit('updateImage', {
+                imageUrl: imageFile
+            });
+
         });
-
-
-    });
+    }
 }
