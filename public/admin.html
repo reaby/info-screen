@@ -21,18 +21,21 @@
 <div class="container">
     <div class="row">
         <div class="col-xs-6">
-            <canvas id="c" height="120" width="210"></canvas>
+            <canvas id="c" width="1920" height="1080"></canvas>
         </div>
         <div class="col-xs-6">
-            <button onclick="clearCanvas();">Clear</button>
-            <button onclick="loopStop();">Stop</button>
-            <button onclick="loopContinue();">Next</button>
+            <button class="btn btn-danger" onclick="clearCanvas();">Clear</button>
+            <button class="btn btn-warning" onclick="loopStop();">Stop</button>
+            <button class="btn btn-success" onclick="loopPrev();">Prev</button>
+            <button class="btn btn-success" onclick="loopNext();">Next</button>
+            <br/><br/>
+            <input class="form-control" type="text" id="title" placeholder="Otsikko"/>
+            <textarea class="form-control" id="text" placeholder="teksti tähän"></textarea>
+            <button class="btn btn-info" onclick="showText();">Override</button>
 
         </div>
     </div>
 </div>
-
-
 
 
 <script src="/js/jquery.js"></script>
@@ -42,5 +45,12 @@
 <script src="/js/bootstrap.js"></script>
 <script src="/js/fabric.require.js"></script>
 <script src="/js/app.js"></script>
+<script>
+    $(function () {
+        $("#c").css("width", "210px");
+        $("#c").css("height", "120px");
+    });
+
+</script>
 </body>
 </html>

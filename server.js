@@ -7,7 +7,7 @@ const fs = require('fs');
 var directory = "set1";
 
 /** @var integer */
-var filecounter = -1;
+var fileCounter = -1;
 
 /** @var string */
 var imageFile = "";
@@ -17,6 +17,8 @@ var loopTimeout = 20000;
 
 /** @var boolean stop the loop ? */
 var loopStop = false;
+
+var timeoutId = [];
 
 server.listen(80);
 
@@ -87,23 +89,33 @@ io.on('connection', function (socket) {
     });
 
     socket.on("stop", function () {
-        loopStop = true;
+        doLoop(false);
     });
 
-    socket.on("continue", function () {
-        loopStop = false;
-        loop();
+    socket.on("override", function (data) {
+        doLoop(false);
+        sendOverride(data);
+    });
+
+
+    socket.on("next", function () {
+        doLoop(true);
+    });
+
+    socket.on("prev", function () {
+        fileCounter--;
+        doLoop(true);
     });
 
     socket.on("clear", function (data) {
         io.emit('clearCanvas');
-        loopStop = true;
+        doLoop(false);
     });
 
 });
 
 // Start the loop
-loop();
+mainLoop();
 
 /**
  * syncs the image for incoming connection
@@ -123,13 +135,38 @@ function syncImage(socket) {
     });
 }
 
+function sendOverride(data) {
+    console.log(data);
+
+    io.emit('displayText', {
+        imageUrl: '/images/overrides/background.jpg',
+        title: data.title,
+        text: data.text
+    });
+}
+
+
+function doLoop(value) {
+    loopStop = !value;
+    for (var i in timeoutId) {
+        clearTimeout(timeoutId.shift());
+    }
+
+    if (value) {
+        mainLoop();
+    }
+}
 
 /**
  * main loop
  */
-function loop() {
-    if (!loopStop) {
-        setTimeout(loop, loopTimeout);
+function mainLoop() {
+    if (loopStop) {
+        // do nothing
+    }
+    else {
+        timeoutId.push(setTimeout(mainLoop, loopTimeout));
+
         fs.readdir(__dirname + "/public/images/" + directory, function (err, files) {
             var filteredFiles = [];
             for (var i in files) {
@@ -138,10 +175,13 @@ function loop() {
                 filteredFiles.push(file);
             }
             var len = filteredFiles.length;
-            if (filecounter > len) filecounter = 0;
 
-            filecounter = (filecounter + 1) % len;
-            imageFile = '/images/' + directory + '/' + filteredFiles[filecounter];
+            if (fileCounter > len) fileCounter = 0;
+            fileCounter = (fileCounter + 1) % len;
+            if (fileCounter < 0) fileCounter = 0;
+
+
+            imageFile = '/images/' + directory + '/' + filteredFiles[fileCounter];
 
             io.emit('updateImage', {
                 imageUrl: imageFile
