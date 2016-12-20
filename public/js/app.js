@@ -72,23 +72,17 @@ socket.on('displayText', function (data) {
         var title = new fabric.Text(data.title, {
             left: 200, //Take the block's position
             top: 100,
-            scaleY: canvas.height / oImg.height,
-            scaleX: canvas.width / oImg.width,
             fill: 'white',
             fontFamily: "Arial",
-            fontSize: 48
+            fontSize: 120
         });
 
         var text = new fabric.Textbox(data.text, {
             left: 250, //Take the block's position
             top: 250,
-            width: 1600,
-            height: 1000,
-            scaleY: canvas.height / oImg.height,
-            scaleX: canvas.width / oImg.width,
             fill: 'white',
             fontFamily: "Arial",
-            fontSize: 32
+            fontSize: 90
         });
 
         title.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
