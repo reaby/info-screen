@@ -161,12 +161,9 @@ socket.on('overrideText', function (data) {
     for (var o in override) {
         canvas.remove(override.shift());
     }
-    for (var i in texts) {
-        canvas.remove(texts.shift());
-    }
+    clearTexts();
     override = [];
     images = [];
-    texts = [];
 
     canvas.clear();
 
