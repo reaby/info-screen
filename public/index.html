@@ -5,23 +5,41 @@
     <title>test</title>
     <script src="/socket.io/socket.io.js"></script>
     <style>
+
         html, * {
             margin: 0;
             padding: 0;
         }
+
         body {
             overflow: hidden;
+            background: black;
+        }
+
+        #kello {
+            position: fixed;
+            z-index: 10;
+            bottom: 1em;
+            right: 1em;
+            font-family: "Arial";
+            font-weight: bolder;
+            font-size: 3em;
+            color: white;
+            text-shadow: 2px 2px 2px black;
+            text-align: right;
         }
     </style>
     <script src="/js/jquery.js"></script>
 
     <script>
         $(function () {
+            kello();
+            setInterval(kello, 1000);
             fixCanvas();
+
         });
 
-        function fixCanvas()
-        {
+        function fixCanvas() {
             var w = $(window).width();
             var h = $(window).height();
 
@@ -29,15 +47,24 @@
             $("#c").css("height", h + "px");
         }
 
-        $(window).bind("resize", function(){
+        $(window).bind("resize", function () {
             fixCanvas();
         });
+
+
+        function kello() {
+            var date = new Date();
+            var time = date.getHours() + ":" + date.getMinutes();
+            $('#kello').html(time);
+        }
+
+
     </script>
 
 </head>
 <body>
 <canvas id="c" width="1920" height="1080"></canvas>
-
+<div id="kello">00:00</div>
 <script src="/js/fabric.require.js"></script>
 <script src="/js/app.js"></script>
 

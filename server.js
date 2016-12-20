@@ -90,7 +90,7 @@ io.on('connection', function (socket) {
     });
 });
 
-setInterval(changeSlide, 15000);
+setInterval(changeSlide, 20000);
 
 changeSlide();
 

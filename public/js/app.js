@@ -19,7 +19,6 @@ socket.on('clearCanvas', function (data) {
 });
 
 socket.on('updateImage', function (data) {
-    console.log(data);
 
     fabric.Image.fromURL(data.imageUrl, function (oImg) {
             oImg.set({
@@ -31,17 +30,22 @@ socket.on('updateImage', function (data) {
 
             if (images.length > 1) {
                 var imageLast = images.shift();
-                console.log("found.");
                 imageLast.animate("opacity", 0, {
                     from: 1,
                     onChange: canvas.renderAll.bind(canvas),
-                    duration: 1500,
+                    duration: 2500,
                     onComplete: function () {
                         canvas.remove(imageLast);
                     }
                 });
-            }
             change();
+            }
+            else {
+                images[0].set({
+                    opacity: 1
+                });
+                canvas.add(images[0]);
+            }
         }
     );
 });
@@ -49,7 +53,7 @@ socket.on('updateImage', function (data) {
 function change() {
     canvas.add(images[0]);
     images[0].animate("opacity", 1, {
-        duration: 1500,
+        duration: 2500,
         onChange: canvas.renderAll.bind(canvas)
     });
 }
