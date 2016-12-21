@@ -99,7 +99,7 @@ app.get('/js/:name', function (req, res, next) {
     };
 
     var fileName = req.params.name;
-    console.log(req.params.name);
+
     res.sendFile(fileName, options, function (err) {
         if (err) {
             console.log(err);
@@ -311,7 +311,6 @@ function mainLoop() {
 
             var file = filteredFiles[fileCounter];
 
-            console.log(file);
             if (file == null || file == "") {
                 console.log("can't locate empty file");
                 io.emit(buffer.method, buffer.data);
