@@ -34,12 +34,20 @@
         <div class="col-xs-6">
             <canvas id="c" width="1280" height="720"></canvas>
             <br>
-            <button class="btn btn-sm btn-danger" onclick="socket.emit('clear');">Clear</button>
-            <button class="btn btn-sm btn-warning" onclick="socket.emit('stop');">Stop</button>
-            <button class="btn btn-sm btn-success" onclick="socket.emit('prev');">Prev</button>
-            <button class="btn btn-sm btn-success" onclick="socket.emit('next');">Next</button>
+            <form class="form-inline" onsubmit="return false;">
+                <button class="btn btn-sm btn-danger" onclick="socket.emit('clear');">Clear</button>
+                <button class="btn btn-sm btn-warning" onclick="socket.emit('stop');">Stop</button>
+                <button class="btn btn-sm btn-success" onclick="socket.emit('prev');">Prev</button>
+                <button class="btn btn-sm btn-success" onclick="socket.emit('next');">Next</button>
+                <select class="form-control-sm form-control" id="changeDir">
+                </select>
+                <button class="btn btn-sm btn-success" onclick="socket.emit('changeDir', $('#changeDir').val());">
+                    Set
+                </button>
+            </form>
             <br/><br/>
             <div id="files">
+                <select class="form-inline form-control" id="selectDir"></select>
                 <ul class="sortable" id="aFile">
                 </ul>
                 <ul>
@@ -56,11 +64,6 @@
             <textarea class="form-control" id="text" placeholder="teksti tähän"></textarea>
             <button class="btn btn-info" onclick="showText();">Override</button>
             <button class="btn btn-danger" onclick="reset();">Reset</button>
-            <br/><br/>
-            <div id="dirs">
-                <select id="aDir">
-                </select>
-            </div>
             <br>
         </div>
     </div>
@@ -86,11 +89,18 @@
 <script src="/js/fabric.require.js"></script>
 <script src="/js/app.js"></script>
 <script>
+
+
+    $('#selectDir').on('change', function (e) {
+        var optionSelected = $("option:selected", this);
+        var valueSelected = this.value;
+        socket.emit("list", valueSelected);
+    });
+
+
     $(function () {
         $("#c").css("width", "210px");
         $("#c").css("height", "120px");
-        socket.emit("list", "set1");
-
         $(".sortable").sortable();
         $(".sortable").disableSelection();
 
@@ -114,7 +124,7 @@
                         text: $("#editText").val(),
                     });
                     $(this).dialog("close");
-                    socket.emit("list", "set1");
+                    socket.emit("list", $('#selectDir').val());
                 },
                 "Cancel": function () {
                     $(this).dialog("close");
@@ -126,22 +136,31 @@
 
     socket.on("doFileList", function (data) {
         var dir = "";
+        var changedir = "";
         var file = "";
         for (var i in data.dirs) {
-            dir += "<option>" + data.dirs[i] + "</option>";
+            if (data.dirs[i] !== "default") {
+                var selected = "";
+                var selected2 = "";
+                if (data.dirs[i] == data.dir) selected = "selected";
+                if (data.dirs[i] == data.currDir) selected2 = "selected";
+
+                dir += "<option " + selected2 + " value='" + data.dirs[i] + "'>" + data.dirs[i] + " </option>";
+                changedir += "<option " + selected + " value='" + data.dirs[i] + "'>" + data.dirs[i] + "</option>";
+            }
         }
         for (var i in data.files) {
             var fil = data.files[i];
             var edit = "";
-            var dele = "<button class='btn btn-danger btn-sm' onclick=\"confirm('Really delete') ? socket.emit('delete', {dir: '" + data.dir + "', file: '" + fil + "'}): false;\">Delete</button > ";
+            var dele = "<button class='btn btn-danger btn-sm' onclick=\"confirm('Really delete') ? socket.emit('delete', {dir: '" + data.currDir + "', file: '" + fil + "'}): false;\">Delete</button > ";
             if (fil.slice(-4) == "json") {
-                edit = "<button class='btn btn-info btn-sm' onclick=\"socket.emit('edit', {dir: '" + data.dir + "', file: '" + fil + "'});\">Edit</button > ";
+                edit = "<button class='btn btn-info btn-sm' onclick=\"socket.emit('edit', {dir: '" + data.currDir + "', file: '" + fil + "'});\">Edit</button > ";
             }
             file += '<li class="ui-state-default"><div class="row"><div class="col-xs-6">' + data.files[i] + '</div><div class="right col-xs-6">' + edit + dele + "</div></div></li>";
         }
-        $("#aDir").html(dir);
+        $("#changeDir").html(changedir);
+        $("#selectDir").html(dir);
         $("#aFile").html(file);
-
     });
 
 
@@ -155,7 +174,7 @@
 
     function newSlide() {
         $("#editFile").val("");
-        $("#editDir").val("set1");
+        $("#editDir").val($('#selectDir').val());
         $("#editTitle").val("");
         $("#editText").val("");
         $("#dialog").dialog("open");

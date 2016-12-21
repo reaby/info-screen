@@ -115,6 +115,8 @@ app.get('/js/:name', function (req, res, next) {
 
 io.on('connection', function (socket) {
 
+    sendFilelist(socket, "set1");
+
     // when client connects, it calls for sync!
     socket.on("sync", function () {
         syncImage(socket);
@@ -122,6 +124,12 @@ io.on('connection', function (socket) {
 
     socket.on("stop", function () {
         doLoop(false);
+    });
+
+    socket.on("changeDir", function (dir) {
+        directory = dir;
+        fileCounter = -1;
+        doLoop(true);
     });
 
     socket.on("override", function (data) {
@@ -155,8 +163,8 @@ io.on('connection', function (socket) {
         saveSlide(data);
     });
 
-    socket.on("list", function (data) {
-        sendFilelist(socket, data);
+    socket.on("list", function (dir) {
+        sendFilelist(socket, dir);
     });
 
     socket.on("next", function () {
@@ -263,7 +271,12 @@ function sendFilelist(socket, dir) {
             list2.push(file);
         }
     }
-    var data = {dir: dir, dirs: list, files: list2};
+    var data = {
+        dir: directory,
+        currDir: dir,
+        dirs: list,
+        files: list2
+    };
     socket.emit("doFileList", data);
 }
 
@@ -298,9 +311,19 @@ function mainLoop() {
 
             var file = filteredFiles[fileCounter];
 
+            console.log(file);
+            if (file == null || file == "") {
+                console.log("can't locate empty file");
+                io.emit(buffer.method, buffer.data);
+                return;
+            }
+
             if (file.slice(-3) == "jpg" || file.slice(-3) == "png") {
                 buffer.method = 'updateImage';
-                buffer.data = {imageUrl: '/images/' + directory + '/' + file};
+                buffer.data = {
+                    imageUrl: '/images/' + directory + '/' + file,
+                    dir: directory
+                };
             } else if (file.slice(-4) == "json") {
                 try {
                     var data = JSON.parse(fs.readFileSync(__dirname + "/public/images/" + directory + "/" + file, 'utf8'));
@@ -308,12 +331,14 @@ function mainLoop() {
                     buffer.data = {
                         imageUrl: '/images/default/background.jpg',
                         title: data.title,
-                        text: data.text
+                        text: data.text,
+                        dir: directory
                     };
                 } catch (e) {
                     console.log("error while  parsing slide data");
                 }
             }
+
             io.emit(buffer.method, buffer.data);
         });
     }

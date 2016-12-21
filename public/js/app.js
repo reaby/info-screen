@@ -97,6 +97,7 @@ function displayText2(data) {
 function displayText3(data) {
     clearTexts();
     displayText4(data);
+    updateUI(data.dir);
 }
 
 function clearTexts() {
@@ -108,8 +109,7 @@ function clearTexts() {
             onComplete: function () {
                 canvas.remove(oldGroup);
             }
-        });
-
+        })
         delete oldGroup;
     }
 }
@@ -126,7 +126,7 @@ function parseStyle(string) {
             indexes.push([match.index, match.index + match[0].length]);
 
         for (var j in indexes) {
-            for (x = indexes[j][0]-(j*2); x < indexes[j][1]-(j*2)-2; x++) {
+            for (x = indexes[j][0] - (j * 2); x < indexes[j][1] - (j * 2) - 2; x++) {
                 if (!out[i]) {
                     out[i] = {};
                 }
@@ -199,7 +199,7 @@ socket.on('overrideText', function (data) {
             opacity: 1
         });
 
-        var title = new fabric.IText(data.title.replace(/¤/g,""), {
+        var title = new fabric.IText(data.title.replace(/¤/g, ""), {
             left: 200, //Take the block's position
             top: 100,
             fill: 'white',
@@ -234,13 +234,13 @@ socket.on('overrideText', function (data) {
             flash();
         }
         flash();
-
     });
 
 });
 
 socket.on('updateImage', function (data) {
     clearTexts();
+    updateUI(data.dir);
     fabric.Image.fromURL(data.imageUrl, function (oImg) {
             oImg.set({
                 scaleY: canvas.height / oImg.height,
@@ -272,6 +272,15 @@ socket.on('updateImage', function (data) {
         }
     );
 });
+
+
+function updateUI(dir) {
+    var chil = $('#changeDir').children().each(function (i, elem) {
+        if (dir == $(elem).text()) {
+            $(elem).attr("selected", "selected");
+        }
+    });
+}
 
 function change() {
     canvas.add(images[0]);
