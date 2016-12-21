@@ -121,7 +121,7 @@ function parseStyle(string) {
     for (var i in rows) {
         var match, indexes = [];
         var value = rows[i];
-        var r = /#.*?#/g;
+        var r = /¤.*?¤/g;
         while (match = r.exec(value))
             indexes.push([match.index, match.index + match[0].length]);
 
@@ -142,7 +142,7 @@ function parseStyle(string) {
  */
 function displayText4(data) {
 
-    var title = new fabric.IText(data.title.replace(/#/g, ""), {
+    var title = new fabric.IText(data.title.replace(/¤/g, ""), {
         left: 150, //Take the block's position
         top: 75,
         fill: 'white',
@@ -152,7 +152,7 @@ function displayText4(data) {
 
     });
 
-    var text = new fabric.IText(data.text.replace(/#/g, ""), {
+    var text = new fabric.IText(data.text.replace(/¤/g, ""), {
         left: 250, //Take the block's position
         top: 200,
         width: 1600,
@@ -199,7 +199,7 @@ socket.on('overrideText', function (data) {
             opacity: 1
         });
 
-        var title = new fabric.IText(data.title.replace(/#/g,""), {
+        var title = new fabric.IText(data.title.replace(/¤/g,""), {
             left: 200, //Take the block's position
             top: 100,
             fill: 'white',
@@ -208,7 +208,7 @@ socket.on('overrideText', function (data) {
             styles: parseStyle(data.title)
         });
 
-        var text = new fabric.IText(data.text.replace(/#/g, ""), {
+        var text = new fabric.IText(data.text.replace(/¤/g, ""), {
             left: 250, //Take the block's position
             top: 250,
             width: 1600,
