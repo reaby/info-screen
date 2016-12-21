@@ -134,7 +134,6 @@ function parseStyle(string) {
             }
         }
     }
-    console.log(out);
     return out;
 }
 
@@ -200,22 +199,24 @@ socket.on('overrideText', function (data) {
             opacity: 1
         });
 
-        var title = new fabric.Text(data.title, {
+        var title = new fabric.IText(data.title.replace(/#/g,""), {
             left: 200, //Take the block's position
             top: 100,
             fill: 'white',
             fontFamily: "Arial",
-            fontSize: sizeTitle
+            fontSize: sizeTitle,
+            styles: parseStyle(data.title)
         });
 
-        var text = new fabric.Textbox(data.text, {
+        var text = new fabric.IText(data.text.replace(/#/g, ""), {
             left: 250, //Take the block's position
             top: 250,
             width: 1600,
             height: 1000,
             fill: 'white',
             fontFamily: "Arial",
-            fontSize: sizeText
+            fontSize: sizeText,
+            styles: parseStyle(data.text)
         });
 
         title.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
