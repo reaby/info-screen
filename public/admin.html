@@ -13,9 +13,14 @@
             padding: 0;
         }
 
-        .sortable {
+        ul {
             list-style: none;
         }
+
+        .right {
+            text-align: right;
+        }
+
     </style>
     <link rel="stylesheet" href="js/bootstrap.css">
     <link rel="stylesheet" href="js/jquery-ui.css">
@@ -37,6 +42,11 @@
             <div id="files">
                 <ul class="sortable" id="aFile">
                 </ul>
+                <ul>
+                    <li class="">
+                        <button class="btn btn-info btn-sm" onclick="newSlide();">New Text Slide</button>
+                    </li>
+                </ul>
             </div>
 
         </div>
@@ -52,19 +62,18 @@
                 </select>
             </div>
             <br>
-
-
         </div>
     </div>
 </div>
 
-<div id="dialog">
-    <p>
-        <input type="hidden" id="editDir"/>
-        <input type="hidden" id="editFile"/>
-        <input class="form-control" type="text" id="editTitle"/>
-        <textarea class="form-control" id="editText"></textarea>
-    </p>
+<div id="dialog" title="Properties">
+    <input type="hidden" id="editDir"/>
+    <label class="form-control-label" for="editFile">Filename</label>
+    <input class="form-control" type="text" id="editFile"/>
+    <label class="form-control-label" for="editTitle">Title</label>
+    <input class="form-control" type="text" id="editTitle"/>
+    <label class="form-control-label" for="editText">Text</label>
+    <textarea class="form-control" id="editText"></textarea>
 </div>
 <script src="/js/config.js"></script>
 <script src="/js/jquery.js"></script>
@@ -89,17 +98,23 @@
             autoOpen: false,
             resizable: false,
             height: "auto",
-            width: 400,
+            width: 600,
             modal: true,
             buttons: {
                 "Save": function () {
+                    var temp = $("#editFile").val().toString();
+                    var filename = temp;
+                    if (temp.slice(-5) != ".json") {
+                        filename = temp + ".json";
+                    }
                     socket.emit("saveSlide", {
-                        file: $("#editFile").val(),
+                        file: filename,
                         dir: $("#editDir").val(),
                         title: $("#editTitle").val(),
                         text: $("#editText").val(),
                     });
                     $(this).dialog("close");
+                    socket.emit("list", "set1");
                 },
                 "Cancel": function () {
                     $(this).dialog("close");
@@ -118,12 +133,12 @@
         for (var i in data.files) {
             var fil = data.files[i];
             var edit = "";
+            var dele = "<button class='btn btn-danger btn-sm' onclick=\"confirm('Really delete') ? socket.emit('delete', {dir: '" + data.dir + "', file: '" + fil + "'}): false;\">Delete</button > ";
             if (fil.slice(-4) == "json") {
-                edit = "<button class='btn btn-info btn-sm' onclick=\"socket.emit('edit', {dir: '" + data.dir + "', file: '" + fil + "'});\">Edit</button >";
+                edit = "<button class='btn btn-info btn-sm' onclick=\"socket.emit('edit', {dir: '" + data.dir + "', file: '" + fil + "'});\">Edit</button > ";
             }
-            file += '<li class="ui-state-default">' + data.files[i] + edit + "</li>";
+            file += '<li class="ui-state-default"><div class="row"><div class="col-xs-6">' + data.files[i] + '</div><div class="right col-xs-6">' + edit + dele + "</div></div></li>";
         }
-
         $("#aDir").html(dir);
         $("#aFile").html(file);
 
@@ -138,6 +153,13 @@
         $("#dialog").dialog("open");
     });
 
+    function newSlide() {
+        $("#editFile").val("");
+        $("#editDir").val("set1");
+        $("#editTitle").val("");
+        $("#editText").val("");
+        $("#dialog").dialog("open");
+    }
 
 </script>
 

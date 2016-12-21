@@ -101,6 +101,24 @@ io.on('connection', function (socket) {
         sendOverride(data);
     });
 
+    socket.on("delete", function (data) {
+        if (data.dir.indexOf(".") !== -1) {
+            console.log("invalid directory:" + data.dir);
+            return;
+        }
+
+        fs.unlink("public/images/" + data.dir + "/" + data.file, function (err) {
+            if (err) {
+                console.log("error while deleting: public/images/" + data.dir + "/" + data.file);
+                return;
+            }
+            sendFilelist(socket, data.dir);
+            console.log("delete success: public/images/" + data.dir + "/" + data.file);
+        });
+
+
+    });
+
     socket.on("edit", function (data) {
         sendEditSlide(socket, data);
     });
