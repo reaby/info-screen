@@ -1,0 +1,5 @@
+{
+  "listenPort": 80,
+  "adminUsername": "user",
+  "adminPass": "pass"
+}

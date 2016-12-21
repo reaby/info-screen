@@ -1,8 +1,13 @@
-var app = require('express')();
+var express = require('express');
+var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 const fs = require('fs');
 const path = require('path');
+var basicAuth = require('basic-auth');
+var config = require('./config.json');
+
+server.listen(config.listenPort);
 
 /** @var string */
 var directory = "set1";
@@ -25,15 +30,40 @@ var timeoutId = [];
 
 var len = 1;
 
-server.listen(80);
-
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/public/index.html');
 });
 
-app.get('/:name', function (req, res) {
-    res.sendFile(__dirname + '/public/' + req.params.name);
+
+var auth = function (req, res, next) {
+    function unauthorized(res) {
+        res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+        return res.sendStatus(401);
+    };
+
+    var user = basicAuth(req);
+
+    if (!user || !user.name || !user.pass) {
+        return unauthorized(res);
+    }
+    ;
+
+    if (user.name === config.adminUsername && user.pass === config.adminPass) {
+        return next();
+    } else {
+        return unauthorized(res);
+    }
+    ;
+};
+
+app.get('/admin', auth, function (req, res) {
+    res.sendFile(__dirname + '/public/admin.html');
 });
+
+/* app.get('/:name', function (req, res) {
+ res.sendFile(__dirname + '/public/' + req.params.name);
+ }); */
+
 
 app.get('/images/:dir/:name', function (req, res, next) {
 
