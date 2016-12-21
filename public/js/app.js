@@ -95,7 +95,6 @@ function displayText2(data) {
  * @param data
  */
 function displayText3(data) {
-
     clearTexts();
     displayText4(data);
 }
@@ -115,27 +114,54 @@ function clearTexts() {
     }
 }
 
+function parseStyle(string) {
+    var out = {};
+    var rows = string.split("\n");
+
+    for (var i in rows) {
+        var match, indexes = [];
+        var value = rows[i];
+        var r = /#.*?#/g;
+        while (match = r.exec(value))
+            indexes.push([match.index, match.index + match[0].length]);
+
+        for (var j in indexes) {
+            for (x = indexes[j][0]-(j*2); x < indexes[j][1]-(j*2)-2; x++) {
+                if (!out[i]) {
+                    out[i] = {};
+                }
+                out[i][x] = {fill: 'rgb(255,0,0)'};
+            }
+        }
+    }
+    console.log(out);
+    return out;
+}
+
 /**
  * finally display the text
  */
 function displayText4(data) {
 
-    var title = new fabric.Text(data.title, {
+    var title = new fabric.IText(data.title.replace(/#/g, ""), {
         left: 150, //Take the block's position
         top: 75,
         fill: 'white',
         fontFamily: "Arial",
-        fontSize: sizeTitle
+        fontSize: sizeTitle,
+        styles: parseStyle(data.title)
+
     });
 
-    var text = new fabric.Textbox(data.text, {
+    var text = new fabric.IText(data.text.replace(/#/g, ""), {
         left: 250, //Take the block's position
         top: 200,
         width: 1600,
         height: 1000,
         fill: 'white',
         fontFamily: "Arial",
-        fontSize: sizeText
+        fontSize: sizeText,
+        styles: parseStyle(data.text)
     });
 
     title.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
