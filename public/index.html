@@ -8,7 +8,7 @@
     <script src="/js/jquery.js"></script>
     <link rel="stylesheet" href="/js/styles.css">
 </head>
-<body>
+<body id="mainView">
 
 <div id="video-container">
 
@@ -25,8 +25,6 @@
     $(function () {
         kello();
         setInterval(kello, 1000);
-        fixCanvas();
-
     });
 
     function fixCanvas() {

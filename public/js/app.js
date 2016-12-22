@@ -1,4 +1,5 @@
-var canvas = new fabric.StaticCanvas('c');
+var canvas;
+
 var images = [];
 var override = [];
 var textGroup = null;
@@ -9,11 +10,14 @@ var videoMsg = new fabric.IText("video playback", {
     left: 500,
     top: 150,
     fill: 'white',
-    fontFamily: "Arial",
+    fontFamily: textFontName,
     fontSize: sizeTitle
 });
+var textFontName = "Francois One";
 
 socket.on('connect', function () {
+    canvas = new fabric.StaticCanvas('c');
+    fixCanvas();
     socket.emit("sync");
 });
 
@@ -178,7 +182,7 @@ function displayText4(data) {
         left: 150, //Take the block's position
         top: 75,
         fill: 'white',
-        fontFamily: "Arial",
+        fontFamily: textFontName,
         fontSize: sizeTitle,
         styles: parseStyle(data.title)
 
@@ -190,7 +194,7 @@ function displayText4(data) {
         width: 1600,
         height: 1000,
         fill: 'white',
-        fontFamily: "Arial",
+        fontFamily: textFontName,
         fontSize: sizeText,
         styles: parseStyle(data.text)
     });
@@ -235,7 +239,7 @@ socket.on('overrideText', function (data) {
             left: 200, //Take the block's position
             top: 100,
             fill: 'white',
-            fontFamily: "Arial",
+            fontFamily: textFontName,
             fontSize: sizeTitle,
             styles: parseStyle(data.title)
         });
@@ -246,7 +250,7 @@ socket.on('overrideText', function (data) {
             width: 1600,
             height: 1000,
             fill: 'white',
-            fontFamily: "Arial",
+            fontFamily: textFontName,
             fontSize: sizeText,
             styles: parseStyle(data.text)
         });

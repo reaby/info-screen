@@ -24,8 +24,7 @@
     <link rel="stylesheet" href="js/bootstrap.css">
     <link rel="stylesheet" href="js/jquery-ui.css">
     <link rel="stylesheet" href="js/jquery-ui.theme.css">
-
-
+    <link rel="stylesheet" href="js/styles.css">
 </head>
 <body>
 <div class="container">
@@ -99,8 +98,6 @@
 
 
     $(function () {
-        $("#c").css("width", "420px");
-        $("#c").css("height", "240px");
         $(".sortable").sortable();
         $(".sortable").disableSelection();
 
@@ -180,6 +177,11 @@
         $("#dialog").dialog("open");
     }
 
+// for fixing admin preview;
+    function fixCanvas() {
+        $("#c").css("width", "420px");
+        $("#c").css("height", "240px");
+    }
 </script>
 
 </body>

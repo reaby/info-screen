@@ -1,9 +1,11 @@
+@import url('https://fonts.googleapis.com/css?family=Francois+One');
+
 html, * {
     margin: 0;
     padding: 0;
 }
 
-body {
+body#mainView {
     overflow: hidden;
     background: black;
 }
@@ -13,7 +15,7 @@ body {
     z-index: 10;
     bottom: 1em;
     right: 1em;
-    font-family: "Arial";
+    font-family: 'Oswald', sans-serif;
     font-weight: bolder;
     font-size: 3em;
     color: white;
