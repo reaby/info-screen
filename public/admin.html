@@ -69,13 +69,23 @@
 </div>
 
 <div id="dialog" title="Properties">
-    <input type="hidden" id="editDir"/>
-    <label class="form-control-label" for="editFile">Filename</label>
-    <input class="form-control" type="text" id="editFile"/>
-    <label class="form-control-label" for="editTitle">Title</label>
-    <input class="form-control" type="text" id="editTitle"/>
-    <label class="form-control-label" for="editText">Text</label>
-    <textarea class="form-control" id="editText"></textarea>
+
+    <div class="container-fluid">
+        <div class="col-xs-6">
+            <canvas id="preview" width="1280" height="720"></canvas>
+        </div>
+
+
+        <div class="col-xs-6">
+            <input type="hidden" id="editDir"/>
+            <label class="form-control-label" for="editFile">Filename</label>
+            <input class="form-control" type="text" id="editFile"/>
+            <label class="form-control-label" for="editTitle">Title</label>
+            <input class="form-control" type="text" id="editTitle"/>
+            <label class="form-control-label" for="editText">Text</label>
+            <textarea class="form-control" id="editText"></textarea>
+        </div>
+    </div>
 </div>
 <script src="/js/config.js"></script>
 <script src="/js/jquery.js"></script>
@@ -101,11 +111,20 @@
         $(".sortable").sortable();
         $(".sortable").disableSelection();
 
+        $('#editTitle').keyup(function() {
+            setTimeout(updatePreview(), 25);
+        });
+
+        $('#editText').keyup(function() {
+            setTimeout(updatePreview(), 25);
+        });
+
+
         $("#dialog").dialog({
             autoOpen: false,
             resizable: false,
             height: "auto",
-            width: 600,
+            width: 980,
             modal: true,
             buttons: {
                 "Save": function () {
@@ -167,21 +186,92 @@
         $("#editTitle").val(data.title);
         $("#editText").val(data.text);
         $("#dialog").dialog("open");
+        openPreview();
     });
 
     function newSlide() {
+
         $("#editFile").val("");
         $("#editDir").val($('#selectDir').val());
         $("#editTitle").val("");
         $("#editText").val("");
         $("#dialog").dialog("open");
+        openPreview();
     }
 
-// for fixing admin preview;
+    // for fixing admin preview;
     function fixCanvas() {
         $("#c").css("width", "420px");
         $("#c").css("height", "240px");
+        $("#preview").css("width", "420px");
+        $("#preview").css("height", "240px");
     }
+
+    var preview = new fabric.StaticCanvas("preview");
+    var previewGroup;
+
+    function updatePreviewBackground() {
+        preview.clear();
+        fabric.Image.fromURL("/images/default/background.jpg", function (oImg) {
+            oImg.set({
+                scaleY: canvas.height / oImg.height,
+                scaleX: canvas.width / oImg.width,
+                opacity: 1
+            });
+
+            preview.add(oImg)
+            updatePreview();
+        });
+    }
+
+    function openPreview() {
+        updatePreviewBackground();
+    }
+
+    function updatePreview() {
+
+        var data = {
+            title: $("#editTitle").val(),
+            text: $("#editText").val()
+        };
+
+        var title = new fabric.IText(data.title.replace(/¤/g, ""), {
+            left: 150, //Take the block's position
+            top: 75,
+            fill: 'white',
+            fontFamily: textFontName,
+            fontSize: sizeTitle,
+            styles: parseStyle(data.title)
+
+        });
+
+        var text = new fabric.IText(data.text.replace(/¤/g, ""), {
+                left: 250, //Take the block's position
+                top: 200,
+                width: 1600,
+                height: 1000,
+                fill: 'white',
+                fontFamily: textFontName,
+                fontSize: sizeText,
+                styles: parseStyle
+                (data.text)
+            })
+            ;
+
+        title.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
+        text.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
+        preview.remove(previewGroup);
+
+        previewGroup = new fabric.Group([title, text]);
+
+        preview.add(previewGroup);
+
+        preview.renderAll();
+
+        console.log("update!");
+    }
+
+
 </script>
 
 </body>
