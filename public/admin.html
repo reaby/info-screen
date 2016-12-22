@@ -7,6 +7,8 @@
 
     <title>test</title>
     <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="js/bootstrap.css">
+
     <style>
         html, * {
             margin: 0;
@@ -20,8 +22,37 @@
         .right {
             text-align: right;
         }
+
+        .center {
+            text-align: center;
+        }
+
+        .left {
+            text-align: left;
+        }
+
+        .sortable li {
+            padding-left: 1rem;
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+
+        .btn-mute {
+            background: #404040;
+            color: white;
+        }
+
+        .btn-mute:hover {
+            color: white;
+            background: #777;
+        }
+
+        .breadcrumb {
+            width: 420px;
+            margin: 0 auto;
+        }
     </style>
-    <link rel="stylesheet" href="js/bootstrap.css">
+
     <link rel="stylesheet" href="js/jquery-ui.css">
     <link rel="stylesheet" href="js/jquery-ui.theme.css">
     <link rel="stylesheet" href="js/styles.css">
@@ -29,53 +60,97 @@
 <body>
 <div class="container">
     <div class="row">
-        <div class="col-xs-6">
+        <!-- Left side -->
+        <div class="col-xs-6 center">
+            <h1>Preview</h1>
+            <ol class="breadcrumb left">
+                <li>Slides</li>
+                <li id="runningSet"></li>
+                <li class="active" id="slideInfo"></li>
+            </ol>
+
             <canvas id="c" width="1280" height="720"></canvas>
-            <br>
-            <form class="form-inline" onsubmit="return false;">
-                <button class="btn btn-sm btn-danger" onclick="socket.emit('clear');">Clear</button>
-                <button class="btn btn-sm btn-warning" onclick="socket.emit('stop');">Stop</button>
-                <button class="btn btn-sm btn-success" onclick="socket.emit('prev');">Prev</button>
+            <br/>
+            <br/>
+            <form class="form" onsubmit="return false;">
+                <button class="btn btn-sm btn-mute" onclick="socket.emit('clear');">Go Black</button>
+                &nbsp;&nbsp;&nbsp;
+                <button class="btn btn-sm btn-success" onclick="socket.emit('prev');">Previous</button>
+                <button class="btn btn-sm btn-warning" onclick="socket.emit('stop');">Pause</button>
                 <button class="btn btn-sm btn-success" onclick="socket.emit('next');">Next</button>
-                <select class="form-control-sm form-control" id="changeDir">
-                </select>
-                <button class="btn btn-sm btn-success" onclick="socket.emit('changeDir', $('#changeDir').val());">
-                    Set
+                <br/><br/>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="videoid" placeholder="Youtube video id">
+                    <span class="input-group-btn">
+
+                    <button class="btn btn-success"
+                            onclick="socket.emit('playVideo', $('#videoid').val());">Play</button>
+            <button class="btn btn-danger" onclick="socket.emit('stopVideo');">Stop</button> </span>
+                </div>
+
+                <br/>
+                <div class="input-group">
+                    <select class=" form-control" id="changeDir">
+                    </select>
+                    <span class="input-group-btn">
+                <button class="btn btn-info" onclick="socket.emit('changeDir', $('#changeDir').val());">
+                    Change set
                 </button>
+                    </span></div>
             </form>
-            <br/><br/>
-            <div id="files">
-                <select class="form-inline form-control" id="selectDir"></select>
-                <ul class="sortable" id="aFile">
-                </ul>
-                <ul>
-                    <li class="">
-                        <button class="btn btn-info btn-sm" onclick="newSlide();">New Text Slide</button>
-                    </li>
-                </ul>
-            </div>
+            <br/>
+
+
         </div>
-        <div class="col-xs-6">
-            <input class="form-control" type="text" id="title" placeholder="Otsikko"/>
-            <textarea class="form-control" id="text" placeholder="teksti tähän"></textarea>
-            <button class="btn btn-info" onclick="showText();">Override</button>
-            <button class="btn btn-danger" onclick="reset();">Reset</button>
-            <br>
-            <input class="form-control" type="text" id="videoid" placeholder="Youtube id"/>
-            <button class="btn btn-success" onclick="socket.emit('playVideo', $('#videoid').val());">Cue Video</button>
-            <button class="btn btn-danger" onclick="socket.emit('stopVideo');">Force Stop</button>
+        <!-- Right side -->
+        <div class="col-xs-6 center">
+            <h1>Fast Announce</h1>
+            <input class="form-control" type="text" id="title" placeholder="Title"/><br/>
+            <textarea class="form-control" id="text" placeholder="Announcement text"></textarea>
+            <br/>
+            <button class="btn btn-danger" onclick="showText();">Announce</button>
+            <button class="btn btn-success" onclick="reset();">Continue show</button>
+
+            <br/>
+            <br/>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <div class="panel-title">Slides
+                    </div>
+                </div>
+                <div class="panel-body">
+
+
+                    <div id="files" class="left">
+                        <div class="row">
+                            <div class="col-xs-6">
+                                <form class="form-inline" onsubmit="return false;">
+                                    Folder <select class="form-control-sm form-control" id="selectDir"></select>
+                                </form>
+                            </div>
+                            <div class="col-xs-6 right">
+                                <button class="btn btn-info btn-sm" onclick="newSlide();">New Text Slide</button>
+                            </div>
+                        </div>
+                        <br>
+                        <ul class="sortable" id="aFile">
+                        </ul>
+
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="dialog" title="Properties">
 
+<!-- Dialog stuff -->
+<div id="dialog" title="Properties">
     <div class="container-fluid">
         <div class="col-xs-6">
             <canvas id="preview" width="1280" height="720"></canvas>
         </div>
-
-
         <div class="col-xs-6">
             <input type="hidden" id="editDir"/>
             <label class="form-control-label" for="editFile">Filename</label>
@@ -89,16 +164,17 @@
 </div>
 <script src="/js/config.js"></script>
 <script src="/js/jquery.js"></script>
-<script src="js/jquery-ui.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.3.7/js/tether.min.js"
-        integrity="sha384-XTs3FgkjiBgo8qjEjBk0tGmf3wPrWtA6coPfQDfFEY8AnYJwjalXCiosYRBIBZX8"
-        crossorigin="anonymous"></script>
+<script src="/js/jquery-ui.js"></script>
 <script src="/js/bootstrap.js"></script>
-
 <script src="/js/fabric.require.js"></script>
 <script src="/js/app.js"></script>
 <script>
 
+    function reset() {
+        $('#title').val("");
+        $('#text').val("");
+        socket.emit("next");
+    }
 
     $('#selectDir').on('change', function (e) {
         var optionSelected = $("option:selected", this);
@@ -106,16 +182,29 @@
         socket.emit("list", valueSelected);
     });
 
+    socket.on('updateImage', function (data) {
+        $('#slideInfo').html(data.file);
+        $('#runningSet').html(data.dir);
+    });
+
+    socket.on('displayText', function (data) {
+        $('#slideInfo').html(data.file);
+        $('#runningSet').html(data.dir);
+    });
+
+    socket.on('playVideo', function (data) {
+        $('#slideInfo').html("*video*");
+    });
 
     $(function () {
         $(".sortable").sortable();
         $(".sortable").disableSelection();
 
-        $('#editTitle').keyup(function() {
+        $('#editTitle').keyup(function () {
             setTimeout(updatePreview(), 25);
         });
 
-        $('#editText').keyup(function() {
+        $('#editText').keyup(function () {
             setTimeout(updatePreview(), 25);
         });
 
@@ -203,6 +292,7 @@
     function fixCanvas() {
         $("#c").css("width", "420px");
         $("#c").css("height", "240px");
+        $("#c").css("border", "3px solid black");
         $("#preview").css("width", "420px");
         $("#preview").css("height", "240px");
     }

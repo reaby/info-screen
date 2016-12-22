@@ -6,6 +6,7 @@ var textGroup = null;
 var flashBox = null;
 var sizeTitle = 72;
 var sizeText = 50;
+var textFontName = "Francois One";
 var videoMsg = new fabric.IText("video playback", {
     left: 500,
     top: 150,
@@ -13,7 +14,6 @@ var videoMsg = new fabric.IText("video playback", {
     fontFamily: textFontName,
     fontSize: sizeTitle
 });
-var textFontName = "Francois One";
 
 socket.on('connect', function () {
     canvas = new fabric.StaticCanvas('c');
@@ -21,10 +21,6 @@ socket.on('connect', function () {
     socket.emit("sync");
 });
 
-function reset() {
-    $('#title').val("");
-    $('#text').val("");
-}
 
 function showText() {
     socket.emit("override", {
@@ -75,6 +71,7 @@ socket.on('clearCanvas', function (data) {
         canvas.clear();
     }
 });
+
 socket.on('displayText', function (data) {
     if (override.length > 0) {
         for (var i in override) {
@@ -363,4 +360,3 @@ function flash(color, cont) {
         }
     });
 }
-

@@ -350,7 +350,8 @@ function mainLoop() {
                 buffer.method = 'updateImage';
                 buffer.data = {
                     imageUrl: '/images/' + directory + '/' + file,
-                    dir: directory
+                    dir: directory,
+                    file: file
                 };
             } else if (file.slice(-4) == "json") {
                 try {
@@ -360,7 +361,8 @@ function mainLoop() {
                         imageUrl: '/images/default/background.jpg',
                         title: data.title,
                         text: data.text,
-                        dir: directory
+                        dir: directory,
+                        file: file
                     };
                 } catch (e) {
                     console.log("error while  parsing slide data");
