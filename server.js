@@ -4,7 +4,6 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 const fs = require('fs');
 const path = require('path');
-var request = require('request');
 var basicAuth = require('basic-auth');
 var config = require('./config.json');
 
@@ -59,17 +58,13 @@ app.get('/admin', auth, function (req, res) {
     res.sendFile(__dirname + '/public/admin.html');
 });
 
-app.get('/test', function (req, res) {
-    res.sendFile(__dirname + '/public/youtube.html');
-});
-
 /*
  app.get('/:name', function (req, res) {
  res.sendFile(__dirname + '/public/' + req.params.name);
  });
  */
 
-app.get('/getInfo', function (req, res) {
+/*app.get('/getInfo', function (req, res) {
     request(req.query.url, function (error, response, body) {
         if (!error && response.statusCode == 200) {
             res.send(body);
@@ -80,7 +75,7 @@ app.get('/getInfo', function (req, res) {
         }
     });
 });
-
+*/
 
 app.get('/images/:dir/:name', function (req, res, next) {
 
