@@ -55,15 +55,16 @@
                     </li>
                 </ul>
             </div>
-
         </div>
         <div class="col-xs-6">
-
             <input class="form-control" type="text" id="title" placeholder="Otsikko"/>
             <textarea class="form-control" id="text" placeholder="teksti tähän"></textarea>
             <button class="btn btn-info" onclick="showText();">Override</button>
             <button class="btn btn-danger" onclick="reset();">Reset</button>
             <br>
+            <input class="form-control" type="text" id="videoid" placeholder="Youtube id"/>
+            <button class="btn btn-success" onclick="socket.emit('playVideo', $('#videoid').val());">Cue Video</button>
+            <button class="btn btn-danger" onclick="socket.emit('stopVideo');">Force Stop</button>
         </div>
     </div>
 </div>

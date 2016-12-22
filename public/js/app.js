@@ -5,6 +5,13 @@ var textGroup = null;
 var flashBox = null;
 var sizeTitle = 72;
 var sizeText = 50;
+var videoMsg = new fabric.IText("video playback", {
+    left: 500,
+    top: 150,
+    fill: 'white',
+    fontFamily: "Arial",
+    fontSize: sizeTitle
+});
 
 socket.on('connect', function () {
     socket.emit("sync");
@@ -22,6 +29,31 @@ function showText() {
         }
     );
 }
+
+socket.on("playVideo", function (id) {
+    if (player) {
+        player.cueVideoById(id);
+        player.playVideo();
+    } else {
+        canvas.add(videoMsg);
+    }
+});
+
+socket.on("stopVideo", function () {
+    if (player) {
+        player.pauseVideo();
+    } else {
+        canvas.remove(videoMsg);
+    }
+});
+
+socket.on("endVideo", function () {
+    if (player) {
+        //
+    } else {
+        canvas.remove(videoMsg);
+    }
+});
 
 socket.on('clearCanvas', function (data) {
     if (images.length > 0) {

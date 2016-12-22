@@ -4,6 +4,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 const fs = require('fs');
 const path = require('path');
+var request = require('request');
 var basicAuth = require('basic-auth');
 var config = require('./config.json');
 
@@ -58,9 +59,27 @@ app.get('/admin', auth, function (req, res) {
     res.sendFile(__dirname + '/public/admin.html');
 });
 
-/* app.get('/:name', function (req, res) {
+app.get('/test', function (req, res) {
+    res.sendFile(__dirname + '/public/youtube.html');
+});
+
+/*
+ app.get('/:name', function (req, res) {
  res.sendFile(__dirname + '/public/' + req.params.name);
- }); */
+ });
+ */
+
+app.get('/getInfo', function (req, res) {
+    request(req.query.url, function (error, response, body) {
+        if (!error && response.statusCode == 200) {
+            res.send(body);
+        }
+        else {
+            res.status(response.statusCode);
+            console.log("Error " + response.statusCode)
+        }
+    });
+});
 
 
 app.get('/images/:dir/:name', function (req, res, next) {
@@ -125,6 +144,21 @@ io.on('connection', function (socket) {
     socket.on("stop", function () {
         doLoop(false);
     });
+
+    socket.on("playVideo", function (id) {
+        io.emit("playVideo", id);
+        doLoop(false);
+    });
+
+    socket.on("stopVideo", function () {
+        io.emit("stopVideo");
+        doLoop(true);
+    });
+
+    socket.on("endVideo", function () {
+        io.emit("endVideo");
+        doLoop(true);
+    })
 
     socket.on("changeDir", function (dir) {
         directory = dir;
