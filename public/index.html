@@ -6,6 +6,7 @@
     <script src="/socket.io/socket.io.js"></script>
 
     <script src="/js/jquery.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <link rel="stylesheet" href="/js/styles.css">
 </head>
 <body id="mainView">
@@ -15,7 +16,7 @@
 </div>
 <canvas id="c" width="1280" height="720"></canvas>
 <div id="kello">00:00</div>
-<script src="https://www.youtube.com/iframe_api"></script>
+
 <script src="/js/config.js"></script>
 <script src="/js/fabric.require.js"></script>
 <script src="/js/app.js"></script>
@@ -39,6 +40,7 @@
 
     $(window).bind("resize", function () {
         fixCanvas();
+        canvas.calcOffset();
     });
 
 
@@ -61,9 +63,14 @@
                 'controls': 0,
             },
             events: {
-                'onStateChange': onPlayerStateChange
+                'onStateChange': onPlayerStateChange,
+                'onReady': onPlayerReady
             }
         });
+    }
+
+    function onPlayerReady() {
+        $('#video-container').hide();
     }
 
     function onPlayerStateChange(event) {
