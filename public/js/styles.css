@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css?family=Francois+One');
+/* @import url('https://fonts.googleapis.com/css?family=Francois+One'); */
+@import url('https://fonts.googleapis.com/css?family=Open+Sans:700');
 
 html, * {
     margin: 0;
@@ -13,7 +14,7 @@ body#mainView {
 #kello {
     position: fixed;
     z-index: 10;
-    bottom: 1em;
+    bottom: 0.25em;
     right: 1em;
     font-family: 'Arial', sans-serif;
     font-weight: bolder;
@@ -29,6 +30,14 @@ body#mainView {
     top: 0;
     left: 0;
     width: 100%;
-    heitgh: 100%;
+    height: 100%;
+}
 
+#c {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -moz-font-smoothing: antialiased;
+    font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-smooth: always;
 }

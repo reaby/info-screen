@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 var basicAuth = require('basic-auth');
 var config = require('./config.json');
+var busboy = require('connect-busboy');
 
 server.listen(config.listenPort);
 
@@ -29,6 +30,8 @@ var loopStop = false;
 var timeoutId = [];
 
 var len = 1;
+
+app.use(busboy());
 
 app.get('/', function (req, res) {
     res.sendFile(__dirname + '/public/index.html');
@@ -58,6 +61,18 @@ app.get('/admin', auth, function (req, res) {
     res.sendFile(__dirname + '/public/admin.html');
 });
 
+
+app.post('/upload', auth, function (req, res) {
+    req.pipe(req.busboy);
+    req.busboy.on('file', function (fieldname, file, filename) {
+        var fstream = fs.createWriteStream('public/images/' + directory + "/" + filename);
+        file.pipe(fstream);
+        fstream.on('close', function () {
+            res.send('upload succeeded!');
+        });
+    });
+});
+
 /*
  app.get('/:name', function (req, res) {
  res.sendFile(__dirname + '/public/' + req.params.name);
@@ -65,17 +80,17 @@ app.get('/admin', auth, function (req, res) {
  */
 
 /*app.get('/getInfo', function (req, res) {
-    request(req.query.url, function (error, response, body) {
-        if (!error && response.statusCode == 200) {
-            res.send(body);
-        }
-        else {
-            res.status(response.statusCode);
-            console.log("Error " + response.statusCode)
-        }
-    });
-});
-*/
+ request(req.query.url, function (error, response, body) {
+ if (!error && response.statusCode == 200) {
+ res.send(body);
+ }
+ else {
+ res.status(response.statusCode);
+ console.log("Error " + response.statusCode)
+ }
+ });
+ });
+ */
 
 app.get('/images/:dir/:name', function (req, res, next) {
 

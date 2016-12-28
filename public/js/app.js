@@ -6,7 +6,9 @@ var textGroup = null;
 var flashBox = null;
 var sizeTitle = 72;
 var sizeText = 50;
-var textFontName = "Francois One";
+var textFontName = "Open Sans";
+var textFontWeight = "bold";
+
 var videoMsg = new fabric.IText("video playback", {
     left: 500,
     top: 150,
@@ -15,8 +17,14 @@ var videoMsg = new fabric.IText("video playback", {
     fontSize: sizeTitle
 });
 
+var highliteColor = "#f90";
+
 socket.on('connect', function () {
     canvas = new fabric.StaticCanvas('c');
+    var ctx = canvas.getContext("2d");
+    if (ctx) {
+        ctx.translate(0.5, 0.5);
+    }
     fixCanvas();
     socket.emit("sync");
 });
@@ -163,7 +171,7 @@ function parseStyle(string) {
                 if (!out[i]) {
                     out[i] = {};
                 }
-                out[i][x] = {fill: 'rgb(255,0,0)'};
+                out[i][x] = {fill: highliteColor};
             }
         }
     }
@@ -176,23 +184,25 @@ function parseStyle(string) {
 function displayText4(data) {
 
     var title = new fabric.IText(data.title.replace(/¤/g, ""), {
-        left: 150, //Take the block's position
-        top: 75,
+        top: 30,
+        left: 75, //Take the block's position
         fill: 'white',
         fontFamily: textFontName,
         fontSize: sizeTitle,
+        fontWeight: textFontWeight,
         styles: parseStyle(data.title)
 
     });
 
     var text = new fabric.IText(data.text.replace(/¤/g, ""), {
-        left: 250, //Take the block's position
-        top: 200,
+        top: 150,
+        left: 150,
         width: 1600,
         height: 1000,
         fill: 'white',
         fontFamily: textFontName,
         fontSize: sizeText,
+        fontWeight: textFontWeight,
         styles: parseStyle(data.text)
     });
 
