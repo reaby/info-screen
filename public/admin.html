@@ -51,6 +51,11 @@
             width: 420px;
             margin: 0 auto;
         }
+
+        #c {
+            background: black;
+        }
+
     </style>
 
     <link rel="stylesheet" href="js/jquery-ui.css">
@@ -78,20 +83,10 @@
                 <button class="btn btn-sm btn-success" onclick="socket.emit('prev');">Previous</button>
                 <button class="btn btn-sm btn-warning" onclick="socket.emit('stop');">Pause</button>
                 <button class="btn btn-sm btn-success" onclick="socket.emit('next');">Next</button>
-                <br/><br/>
-                <div class="input-group">
-                    <input type="text" class="form-control" id="videoid" placeholder="Youtube video id">
-                    <span class="input-group-btn">
-                    <button class="btn btn-success"
-                            onclick="socket.emit('playVideo', $('#videoid').val());">Play</button>
-                        <button class="btn btn-danger" onclick="socket.emit('stopVideo');">Stop</button>
-                    </span>
-                </div>
 
                 <br/>
                 <div class="input-group">
-                    <select class=" form-control" id="changeDir">
-                    </select>
+                    <select title="" class="form-control" id="changeDir"></select>
                     <span class="input-group-btn">
                         <button class="btn btn-info" onclick="socket.emit('changeDir', $('#changeDir').val());">
                     Change set </button>
@@ -123,7 +118,8 @@
                         <div class="row">
                             <div class="col-xs-6">
                                 <form class="form-inline" onsubmit="return false;">
-                                    Folder <select class="form-control-sm form-control" id="selectDir"></select>
+                                    Folder <select title="Folder" class="form-control-sm form-control"
+                                                   id="selectDir"></select>
                                 </form>
                             </div>
                             <div class="col-xs-6 right">
@@ -132,7 +128,7 @@
                             <div class="center">
                                 <form class="form-inline" action="/upload" method="post" enctype="multipart/form-data">
                                     <div class="input-group">
-                                        <input type="file" name="image" />
+                                        <input type="file" name="image"/>
                                         <span class="input-group-btn">
                                     <button class="btn btn-info" type="submit">Go!</button>
                                     </span>
@@ -183,8 +179,8 @@
         socket.emit("next");
     }
 
-    $('#selectDir').on('change', function (e) {
-        var optionSelected = $("option:selected", this);
+    $('#selectDir').on('change', function () {
+        // var optionSelected = $("option:selected", this);
         var valueSelected = this.value;
         socket.emit("list", valueSelected);
     });
@@ -197,10 +193,6 @@
     socket.on('displayText', function (data) {
         $('#slideInfo').html(data.file);
         $('#runningSet').html(data.dir);
-    });
-
-    socket.on('playVideo', function (data) {
-        $('#slideInfo').html("*video*");
     });
 
     $(function () {
@@ -225,14 +217,14 @@
                 "Save": function () {
                     var temp = $("#editFile").val().toString();
                     var filename = temp;
-                    if (temp.slice(-5) != ".json") {
+                    if (temp.slice(-5) !== ".json") {
                         filename = temp + ".json";
                     }
                     socket.emit("saveSlide", {
                         file: filename,
                         dir: $("#editDir").val(),
                         title: $("#editTitle").val(),
-                        text: $("#editText").val(),
+                        text: $("#editText").val()
                     });
                     $(this).dialog("close");
                     socket.emit("list", $('#selectDir').val());
@@ -249,26 +241,28 @@
         var dir = "";
         var changedir = "";
         var file = "";
-        for (var i in data.dirs) {
-            if (data.dirs[i] !== "default") {
+        data.dirs.forEach(function (element) {
+            if (element !== "default") {
                 var selected = "";
                 var selected2 = "";
-                if (data.dirs[i] == data.dir) selected = "selected";
-                if (data.dirs[i] == data.currDir) selected2 = "selected";
+                if (element === data.dir) selected = "selected";
+                if (element === data.currDir) selected2 = "selected";
 
-                dir += "<option " + selected2 + " value='" + data.dirs[i] + "'>" + data.dirs[i] + " </option>";
-                changedir += "<option " + selected + " value='" + data.dirs[i] + "'>" + data.dirs[i] + "</option>";
+                dir += "<option " + selected2 + " value='" + element + "'>" + element + " </option>";
+                changedir += "<option " + selected + " value='" + element + "'>" + element + "</option>";
             }
-        }
-        for (var i in data.files) {
-            var fil = data.files[i];
+        });
+
+
+        data.files.forEach(function (element) {
+            var fil = element;
             var edit = "";
             var dele = "<button class='btn btn-danger btn-sm' onclick=\"confirm('Really delete') ? socket.emit('delete', {dir: '" + data.currDir + "', file: '" + fil + "'}): false;\">Delete</button > ";
-            if (fil.slice(-4) == "json") {
+            if (fil.slice(-4) === "json") {
                 edit = "<button class='btn btn-info btn-sm' onclick=\"socket.emit('edit', {dir: '" + data.currDir + "', file: '" + fil + "'});\">Edit</button > ";
             }
-            file += '<li class="ui-state-default"><div class="row"><div class="col-xs-6">' + data.files[i] + '</div><div class="right col-xs-6">' + edit + dele + "</div></div></li>";
-        }
+            file += '<li class="ui-state-default"><div class="row"><div class="col-xs-6">' + element + '</div><div class="right col-xs-6">' + edit + dele + "</div></div></li>";
+        });
         $("#changeDir").html(changedir);
         $("#selectDir").html(dir);
         $("#aFile").html(file);
@@ -296,11 +290,8 @@
 
     // for fixing admin preview;
     function fixCanvas() {
-        $("#c").css("width", "420px");
-        $("#c").css("height", "240px");
-        $("#c").css("border", "3px solid black");
-        $("#preview").css("width", "420px");
-        $("#preview").css("height", "240px");
+        $("#c").css("width", "420px").css("height", "240px").css("border", "3px solid black");
+        $("#preview").css("width", "420px").css("height", "240px");
     }
 
     var preview = new fabric.StaticCanvas("preview");
@@ -308,14 +299,14 @@
 
     function updatePreviewBackground() {
         preview.clear();
-        fabric.Image.fromURL("/images/default/background.jpg", function (oImg) {
+        fabric.Image.fromURL("/data/default/background.jpg", function (oImg) {
             oImg.set({
                 scaleY: canvas.height / oImg.height,
                 scaleX: canvas.width / oImg.width,
                 opacity: 1
             });
 
-            preview.add(oImg)
+            preview.add(oImg);
             updatePreview();
         });
     }
@@ -354,7 +345,7 @@
                 styles: parseStyle
                 (data.text)
             })
-            ;
+        ;
 
         title.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});
         text.setShadow({color: "rgba(0,0,0,1)", blur: 2, offsetX: 2, offsetY: 2});

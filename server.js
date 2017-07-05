@@ -1,12 +1,12 @@
-var express = require('express');
+var express = require("express");
 var app = express();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
-const fs = require('fs');
-const path = require('path');
-var basicAuth = require('basic-auth');
-var config = require('./config.json');
-var busboy = require('connect-busboy');
+var server = require("http").Server(app);
+var io = require("socket.io")(server);
+var fs = require("fs");
+var path = require("path");
+var basicAuth = require("basic-auth");
+var config = require("./config.json");
+var busboy = require("connect-busboy");
 
 server.listen(config.listenPort);
 
@@ -15,9 +15,6 @@ var directory = "set1";
 
 /** @var integer */
 var fileCounter = -1;
-
-/** @var object */
-var imageFile = "";
 
 var buffer = {};
 
@@ -33,14 +30,14 @@ var len = 1;
 
 app.use(busboy());
 
-app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/public/index.html');
+app.get("/", function (req, res) {
+    res.sendFile(__dirname + "/public/index.html");
 });
 
 
 var auth = function (req, res, next) {
     function unauthorized(res) {
-        res.set('WWW-Authenticate', 'Basic realm=Authorization Required');
+        res.set("WWW-Authenticate", "Basic realm=Authorization Required");
         return res.sendStatus(401);
     }
 
@@ -57,29 +54,29 @@ var auth = function (req, res, next) {
     }
 };
 
-app.get('/admin', auth, function (req, res) {
-    res.sendFile(__dirname + '/public/admin.html');
+app.get("/admin", auth, function (req, res) {
+    res.sendFile(__dirname + "/public/admin.html");
 });
 
 
-app.post('/upload', auth, function (req, res) {
+app.post("/upload", auth, function (req, res) {
     req.pipe(req.busboy);
-    req.busboy.on('file', function (fieldname, file, filename) {
-        var fstream = fs.createWriteStream('public/images/' + directory + "/" + filename);
+    req.busboy.on("file", function (fieldname, file, filename) {
+        var fstream = fs.createWriteStream("public/data/" + directory + "/" + filename);
         file.pipe(fstream);
-        fstream.on('close', function () {
-            res.send('upload succeeded!');
+        fstream.on("close", function () {
+            res.send("upload succeeded!");
         });
     });
 });
 
 /*
- app.get('/:name', function (req, res) {
- res.sendFile(__dirname + '/public/' + req.params.name);
+ app.get("/:name", function (req, res) {
+ res.sendFile(__dirname + "/public/" + req.params.name);
  });
  */
 
-/*app.get('/getInfo', function (req, res) {
+/*app.get("/getInfo", function (req, res) {
  request(req.query.url, function (error, response, body) {
  if (!error && response.statusCode == 200) {
  res.send(body);
@@ -92,14 +89,14 @@ app.post('/upload', auth, function (req, res) {
  });
  */
 
-app.get('/images/:dir/:name', function (req, res, next) {
+app.get("/data/:dir/:name", function (req, res, next) {
 
     var options = {
-        root: __dirname + '/public/images/',
-        dotfiles: 'deny',
+        root: __dirname + "/public/data/",
+        dotfiles: "deny",
         headers: {
-            'x-timestamp': Date.now(),
-            'x-sent': true
+            "x-timestamp": Date.now(),
+            "x-sent": true
         }
     };
 
@@ -111,19 +108,19 @@ app.get('/images/:dir/:name', function (req, res, next) {
             res.status(err.status).end();
         }
         else {
-            console.log('Sent:', fileName);
+            console.log("Sent:", fileName);
         }
     });
 });
 
-app.get('/js/:name', function (req, res, next) {
+app.get("/js/:name", function (req, res, next) {
 
     var options = {
-        root: __dirname + '/public/js/',
-        dotfiles: 'deny',
+        root: __dirname + "/public/js/",
+        dotfiles: "deny",
         headers: {
-            'x-timestamp': Date.now(),
-            'x-sent': true
+            "x-timestamp": Date.now(),
+            "x-sent": true
         }
     };
 
@@ -135,14 +132,14 @@ app.get('/js/:name', function (req, res, next) {
             res.status(err.status).end();
         }
         else {
-            console.log('Sent:', fileName);
+            console.log("Sent:", fileName);
         }
     });
 
 });
 
 
-io.on('connection', function (socket) {
+io.on("connection", function (socket) {
 
     sendFilelist(socket, "set1");
 
@@ -154,21 +151,6 @@ io.on('connection', function (socket) {
     socket.on("stop", function () {
         doLoop(false);
     });
-
-    socket.on("playVideo", function (id) {
-        io.emit("playVideo", id);
-        doLoop(false);
-    });
-
-    socket.on("stopVideo", function () {
-        io.emit("stopVideo");
-        doLoop(true);
-    });
-
-    socket.on("endVideo", function () {
-        io.emit("endVideo");
-        doLoop(true);
-    })
 
     socket.on("changeDir", function (dir) {
         directory = dir;
@@ -187,13 +169,13 @@ io.on('connection', function (socket) {
             return;
         }
 
-        fs.unlink("public/images/" + data.dir + "/" + data.file, function (err) {
+        fs.unlink("public/data/" + data.dir + "/" + data.file, function (err) {
             if (err) {
-                console.log("error while deleting: public/images/" + data.dir + "/" + data.file);
+                console.log("error while deleting: public/data/" + data.dir + "/" + data.file);
                 return;
             }
             sendFilelist(socket, data.dir);
-            console.log("delete success: public/images/" + data.dir + "/" + data.file);
+            console.log("delete success: public/data/" + data.dir + "/" + data.file);
         });
 
 
@@ -221,7 +203,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on("clear", function (data) {
-        io.emit('clearCanvas');
+        io.emit("clearCanvas");
         doLoop(false);
     });
 
@@ -239,9 +221,9 @@ function syncImage(socket) {
 }
 
 function sendOverride(data) {
-    buffer.method = 'overrideText';
+    buffer.method = "overrideText";
     buffer.data = {
-        imageUrl: '/images/default/background.jpg',
+        imageUrl: "/data/default/background.jpg",
         title: data.title,
         text: data.text
     };
@@ -255,7 +237,7 @@ function saveSlide(data) {
         text: data.text
     };
 
-    fs.writeFile("public/images/" + data.dir + "/" + data.file, JSON.stringify(out), function (err) {
+    fs.writeFile("public/data/" + data.dir + "/" + data.file, JSON.stringify(out), function (err) {
         if (err) {
             console.log("fail");
             return;
@@ -266,7 +248,7 @@ function saveSlide(data) {
 
 function sendEditSlide(socket, inData) {
     try {
-        var data = JSON.parse(fs.readFileSync(__dirname + "/public/images/" + inData.dir + "/" + inData.file, 'utf8'));
+        var data = JSON.parse(fs.readFileSync(__dirname + "/public/data/" + inData.dir + "/" + inData.file, "utf8"));
         data.dir = inData.dir;
         data.file = inData.file;
         socket.emit("getEditData", data);
@@ -300,21 +282,21 @@ function listDirs(dir) {
 }
 
 function sendFilelist(socket, dir) {
-    var list = listDirs("public/images");
+    var list = listDirs("public/data");
     if (dir.indexOf(".") !== -1) {
         return;
     }
-    var files = listFiles("public/images/" + dir);
+    var files = listFiles("public/data/" + dir);
     var list2 = [];
-    for (var i in files) {
-        var file = files[i];
+    files.forEach(function (element) {
+        var file = element;
         if (file.slice(-3) == "jpg" || file.slice(-3) == "png") {
             list2.push(file);
         }
         if (file.slice(-4) == "json") {
             list2.push(file);
         }
-    }
+    });
     var data = {
         dir: directory,
         currDir: dir,
@@ -339,7 +321,7 @@ function mainLoop() {
 
         timeoutId.push(setTimeout(mainLoop, loopTimeout));
 
-        fs.readdir(__dirname + "/public/images/" + directory, function (err, files) {
+        fs.readdir(__dirname + "/public/data/" + directory, function (err, files) {
             var filteredFiles = [];
             for (var i in files) {
                 var file = files[i];
@@ -362,18 +344,18 @@ function mainLoop() {
             }
 
             if (file.slice(-3) == "jpg" || file.slice(-3) == "png") {
-                buffer.method = 'updateImage';
+                buffer.method = "updateImage";
                 buffer.data = {
-                    imageUrl: '/images/' + directory + '/' + file,
+                    imageUrl: "/data/" + directory + "/" + file,
                     dir: directory,
                     file: file
                 };
             } else if (file.slice(-4) == "json") {
                 try {
-                    var data = JSON.parse(fs.readFileSync(__dirname + "/public/images/" + directory + "/" + file, 'utf8'));
-                    buffer.method = 'displayText';
+                    var data = JSON.parse(fs.readFileSync(__dirname + "/public/data/" + directory + "/" + file, "utf8"));
+                    buffer.method = "displayText";
                     buffer.data = {
-                        imageUrl: '/images/default/background.jpg',
+                        imageUrl: "/data/default/background.jpg",
                         title: data.title,
                         text: data.text,
                         dir: directory,

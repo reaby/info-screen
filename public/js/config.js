@@ -1,1 +1,1 @@
-var socket = io.connect('http://85.188.10.27');
+var socket = io.connect('http://localhost');

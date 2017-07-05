@@ -2,18 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>info-screen</title>
+    <title>Info-screen</title>
     <script src="/socket.io/socket.io.js"></script>
-
     <script src="/js/jquery.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
     <link rel="stylesheet" href="/js/styles.css">
+
 </head>
 <body id="mainView">
 
-<div id="video-container">
-
-</div>
 <canvas id="c" width="1280" height="720"></canvas>
 <div id="kello">00:00</div>
 
@@ -21,8 +17,6 @@
 <script src="/js/fabric.require.js"></script>
 <script src="/js/app.js"></script>
 <script>
-    var player;
-
     $(function () {
         kello();
         setInterval(kello, 1000);
@@ -32,10 +26,8 @@
         var w = $(window).width();
         var h = $(window).height();
 
-        $("#c").css("width", w + "px");
-        $("#c").css("height", h + "px");
-        $("#video-container").css("width", w + "px");
-        $("#video-container").css("height", h + "px");
+        $("#c").css("width", w + "px").css("height", h + "px");
+        $("#video-container").css("width", w + "px").css("height", h + "px");
     }
 
     $(window).bind("resize", function () {
@@ -48,55 +40,10 @@
         var date = new Date();
         var min = date.getMinutes();
         if (min < 10) min = "0" + min;
-        var time = date.getHours() + ":" + min
+        var time = date.getHours() + ":" + min;
         $('#kello').html(time);
     }
 
-
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('video-container', {
-            width: 1280,
-            height: 720,
-            //    videoId: '_6xNuUEnh2g',
-            playerVars: {
-                'autoplay': 0,
-                'controls': 0,
-            },
-            events: {
-                'onStateChange': onPlayerStateChange,
-                'onReady': onPlayerReady
-            }
-        });
-    }
-
-    function onPlayerReady() {
-        $('#video-container').hide();
-    }
-
-    function onPlayerStateChange(event) {
-        var playerStatus = event.data;
-
-        if (playerStatus == -1) {
-            // unstarted
-        } else if (playerStatus == 0) {
-            // ended
-            socket.emit("endVideo");
-            $('#video-container').hide();
-            $('#c').show();
-        } else if (playerStatus == 1) {
-            // playing
-            $('#video-container').show();
-            $('#c').hide();
-        } else if (playerStatus == 2) {
-            // paused
-            $('#video-container').hide();
-            $('#c').show();
-        } else if (playerStatus == 3) {
-            // buffering
-        } else if (playerStatus == 5) {
-            // video cued
-        }
-    }
 </script>
 </body>
 </html>

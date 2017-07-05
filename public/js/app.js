@@ -1,5 +1,4 @@
 var canvas;
-
 var images = [];
 var override = [];
 var textGroup = null;
@@ -8,15 +7,6 @@ var sizeTitle = 72;
 var sizeText = 50;
 var textFontName = "Open Sans";
 var textFontWeight = "bold";
-
-var videoMsg = new fabric.IText("video playback", {
-    left: 500,
-    top: 150,
-    fill: 'white',
-    fontFamily: textFontName,
-    fontSize: sizeTitle
-});
-
 var highliteColor = "#f90";
 
 socket.on('connect', function () {
@@ -38,32 +28,7 @@ function showText() {
     );
 }
 
-socket.on("playVideo", function (id) {
-    if (player) {
-        player.cueVideoById(id);
-        player.playVideo();
-    } else {
-        canvas.add(videoMsg);
-    }
-});
-
-socket.on("stopVideo", function () {
-    if (player) {
-        player.pauseVideo();
-    } else {
-        canvas.remove(videoMsg);
-    }
-});
-
-socket.on("endVideo", function () {
-    if (player) {
-        //
-    } else {
-        canvas.remove(videoMsg);
-    }
-});
-
-socket.on('clearCanvas', function (data) {
+socket.on('clearCanvas', function () {
     if (images.length > 0) {
         for (var i in images) {
             images[i].animate("opacity", 0, {
@@ -120,6 +85,7 @@ function displayText2(data) {
                     canvas.remove(imageLast);
                 }
             });
+
             displayText3(data);
 
         } else {
@@ -131,6 +97,7 @@ function displayText2(data) {
         }
     });
 }
+
 /**
  * clears old texts from screen
  * @param data
@@ -150,31 +117,30 @@ function clearTexts() {
             onComplete: function () {
                 canvas.remove(oldGroup);
             }
-        })
-        delete oldGroup;
+        });
     }
 }
 
-function parseStyle(string) {
+function parseStyle(data) {
     var out = {};
-    var rows = string.split("\n");
+    var rows = data.split("\n");
 
-    for (var i in rows) {
+    rows.forEach(function (element, i) {
         var match, indexes = [];
-        var value = rows[i];
+        var value = element;
         var r = /¤.*?¤/g;
         while (match = r.exec(value))
             indexes.push([match.index, match.index + match[0].length]);
 
         for (var j in indexes) {
-            for (x = indexes[j][0] - (j * 2); x < indexes[j][1] - (j * 2) - 2; x++) {
+            for (var x = indexes[j][0] - (j * 2); x < indexes[j][1] - (j * 2) - 2; x++) {
                 if (!out[i]) {
                     out[i] = {};
                 }
                 out[i][x] = {fill: highliteColor};
             }
         }
-    }
+    });
     return out;
 }
 
@@ -223,12 +189,14 @@ function displayText4(data) {
 
 
 socket.on('overrideText', function (data) {
-    for (var i in images) {
+    images.forEach(function () {
         canvas.remove(images.shift());
-    }
-    for (var o in override) {
+    });
+
+    override.forEach(function () {
         canvas.remove(override.shift());
-    }
+    });
+
     clearTexts();
     override = [];
     images = [];
@@ -273,9 +241,6 @@ socket.on('overrideText', function (data) {
             canvas.add(override[i]);
         }
 
-        if (data.flash) {
-            flash();
-        }
         flash();
     });
 
@@ -318,8 +283,8 @@ socket.on('updateImage', function (data) {
 
 
 function updateUI(dir) {
-    var chil = $('#changeDir').children().each(function (i, elem) {
-        if (dir == $(elem).text()) {
+    $('#changeDir').children().each(function (i, elem) {
+        if (dir === $(elem).text()) {
             $(elem).attr("selected", "selected");
         }
     });
@@ -361,7 +326,7 @@ function flash(color, cont) {
                 onComplete: function () {
                     canvas.remove(flashBox);
                     if (cont) {
-                        return;
+                        // return;
                     } else {
                         flash("rgb(255,255,255)", true)
                     }
